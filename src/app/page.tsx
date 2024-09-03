@@ -24,12 +24,6 @@ export default function Login({
   const router = useRouter();
   const session = useSession();
 
-  useEffect(() => {
-    if (session.status === "authenticated") {
-      router.push("/chat");
-    }
-  }, [session]);
-
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     const result = await signIn("credentials", {
@@ -42,6 +36,13 @@ export default function Login({
       router.push("?error=CredentialsSignin&type=login");
     }
   };
+
+  useEffect(() => {
+    if (session.status === "authenticated") {
+      router.push("/chat");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-background">
