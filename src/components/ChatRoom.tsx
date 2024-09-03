@@ -26,19 +26,6 @@ const ChatRooms = ({ friends }: { friends: any }) => {
 
   const lastIndex = allMessage.length - 1;
 
-  useEffect(() => {
-    if (friends?.data.length > 0) {
-      setActive(friends?.data[0].id);
-      setMyFriends(friends?.data);
-    }
-  }, [friends]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && allMessage.length > 0) {
-      localStorage.setItem(`chatMessages${active}`, JSON.stringify(allMessage));
-    }
-  }, [allMessage]);
-
   const scrollToBottom = () => {
     containerRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -90,7 +77,23 @@ const ChatRooms = ({ friends }: { friends: any }) => {
     });
     setDisplayMessage(parser ? parser[parser?.length - 1]?.message : "");
   }, [active]);
+
+  useEffect(() => {
+    if (friends?.data.length > 0) {
+      setActive(friends?.data[0].id);
+      setMyFriends(friends?.data);
+    }
+  }, [friends]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && allMessage.length > 0) {
+      localStorage.setItem(`chatMessages${active}`, JSON.stringify(allMessage));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allMessage]);
+
   const activeFriend = myFriends.find((friend) => friend.id === active);
+
   return (
     <div className="bg-gray-100 flex">
       <Alert
@@ -141,7 +144,7 @@ const ChatRooms = ({ friends }: { friends: any }) => {
             >
               <PanelRightClose className="w-6 h-6" />
             </button>
-            <h1>Hello i'm {activeFriend?.name}</h1>
+            <h1>Hello i am {activeFriend?.name}</h1>
           </div>
           <button
             onClick={() => {
