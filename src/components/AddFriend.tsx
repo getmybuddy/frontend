@@ -3,8 +3,6 @@ import React from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -16,7 +14,6 @@ import { Input } from "./ui/input";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { revalidatePath } from "next/cache";
 import Alert from "./Alert";
 
 const AddFriend = () => {

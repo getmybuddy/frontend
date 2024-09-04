@@ -4,30 +4,50 @@ import Alert from "@/components/Alert";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { chatBot } from "@/services/chat";
-import { ArrowUp, Mic, PanelRightClose, PanelRightOpen } from "lucide-react";
+import {
+  ArrowUp,
+  AudioLines,
+  CircleStop,
+  PanelRightClose,
+  PanelRightOpen,
+} from "lucide-react";
 import { signOut } from "next-auth/react";
-import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { getCountryCode, getCountryData, TCountryCode } from "countries-list";
+import useSpeechSynthesis from "@/hooks/useSpeechSynthesis";
+import UserProfile from "./UserProfile";
 
 const ChatRooms = ({ friends }: { friends: any }) => {
-  const containerRef = useRef<null | HTMLDivElement>(null);
+  const containerRef = React.useRef<null | HTMLDivElement>(null);
+
+  const { speak, voices, cancel, speaking, activeVoice } = useSpeechSynthesis();
 
   const [isOpen, setIsOpen] = React.useState(false);
-  const [active, setActive] = useState(1);
-  const [allMessage, setAllMessage] = useState<any[]>([]);
-  const [myFriends, setMyFriends] = useState<any[]>([]);
-  const [displayMessage, setDisplayMessage] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [sideBar, setSideBar] = useState(false);
-  const [userMessage, setUserMessage] = useState({
+  const [active, setActive] = React.useState(1);
+  const [allMessage, setAllMessage] = React.useState<
+    {
+      role: string;
+      message: string;
+      id: number;
+      name?: string;
+    }[]
+  >([]);
+  const [myFriends, setMyFriends] = React.useState<any[]>([]);
+  const [displayMessage, setDisplayMessage] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [sideBar, setSideBar] = React.useState(false);
+  const [userMessage, setUserMessage] = React.useState({
     role: "You",
     message: "",
+    id: 0,
   });
 
   const lastIndex = allMessage.length - 1;
 
   const scrollToBottom = () => {
-    containerRef.current?.scrollIntoView({ behavior: "smooth" });
+    containerRef.current?.scrollIntoView({
+      behavior: isLoading ? "smooth" : "instant",
+    });
   };
 
   const formAction = async (formData: FormData) => {
@@ -37,7 +57,12 @@ const ChatRooms = ({ friends }: { friends: any }) => {
       setAllMessage((prev) => [
         ...prev,
         userMessage,
-        { role: "AI", message: result || "Please try again!" },
+        {
+          role: "AI",
+          name: activeFriend?.name,
+          message: result || "Please try again!",
+          id: userMessage.id + 1,
+        },
       ]);
       const splitMessage = result?.split(" ");
       let i = 0;
@@ -55,21 +80,23 @@ const ChatRooms = ({ friends }: { friends: any }) => {
       setUserMessage((prev) => ({
         ...prev,
         message: "",
+        id: prev.id + 2,
       }));
     } else {
       setUserMessage({
         role: "You",
         message: "",
+        id: 0,
       });
       setIsOpen(true);
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     scrollToBottom();
   }, [displayMessage]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const savedMessages = localStorage.getItem(`chatMessages${active}`);
     const parser = savedMessages && JSON.parse(savedMessages);
     setAllMessage(() => {
@@ -78,14 +105,14 @@ const ChatRooms = ({ friends }: { friends: any }) => {
     setDisplayMessage(parser ? parser[parser?.length - 1]?.message : "");
   }, [active]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (friends?.data.length > 0) {
       setActive(friends?.data[0].id);
       setMyFriends(friends?.data);
     }
   }, [friends]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (typeof window !== "undefined" && allMessage.length > 0) {
       localStorage.setItem(`chatMessages${active}`, JSON.stringify(allMessage));
     }
@@ -93,6 +120,17 @@ const ChatRooms = ({ friends }: { friends: any }) => {
   }, [allMessage]);
 
   const activeFriend = myFriends.find((friend) => friend.id === active);
+
+  const countryData = getCountryData(
+    getCountryCode(
+      activeFriend?.location.split(", ")[1]
+    ) as unknown as TCountryCode
+  );
+
+  const voice = voices.find(
+    (item: any) =>
+      item.lang === `${countryData?.languages?.[0]}-${countryData?.iso2}`
+  );
 
   return (
     <div className="bg-gray-100 flex">
@@ -115,6 +153,7 @@ const ChatRooms = ({ friends }: { friends: any }) => {
           >
             <PanelRightOpen className="w-6 h-6" />
           </Button>
+          <AddFriend />
           <ul className="space-y-2 text-center">
             {myFriends?.map((item, idx) => (
               <li
@@ -129,7 +168,6 @@ const ChatRooms = ({ friends }: { friends: any }) => {
               </li>
             ))}
           </ul>
-          <AddFriend />
         </div>
       </div>
       <div className="flex-1">
@@ -144,7 +182,9 @@ const ChatRooms = ({ friends }: { friends: any }) => {
             >
               <PanelRightClose className="w-6 h-6" />
             </button>
-            <h1>Hello i am {activeFriend?.name}</h1>
+            <UserProfile {...activeFriend}>
+              <h1>Hello i am {activeFriend?.name}</h1>
+            </UserProfile>
           </div>
           <button
             onClick={() => {
@@ -157,20 +197,41 @@ const ChatRooms = ({ friends }: { friends: any }) => {
         <div className="flex flex-col max-w-sm h-[calc(100vh_-_64px)] md:max-w-2xl mx-auto rounded-lg pt-4">
           <div className="flex-grow p-4 overflow-y-auto">
             {allMessage.map((msg, idx) => (
-              <div
-                ref={containerRef}
-                key={idx}
-                className={`mb-4 p-3 rounded-lg ${
-                  msg.role === "You" ? "text-right" : "bg-slate-300"
-                }`}
-              >
-                <p className="font-semibold">{msg.role}</p>
-                <p>
-                  {msg.role !== "You" && idx === lastIndex
-                    ? displayMessage
-                    : msg.message}
-                </p>
-              </div>
+              <>
+                <div
+                  key={idx}
+                  className={`p-3 rounded-lg ${
+                    msg.role === "You" ? "text-right" : "bg-slate-300"
+                  }`}
+                >
+                  <p className="font-semibold">{msg.name || "You"}</p>
+                  <p>
+                    {msg.role !== "You" && idx === lastIndex
+                      ? displayMessage
+                      : msg.message}
+                  </p>
+                </div>
+                {msg.role === "AI" && (
+                  <button
+                    key={idx}
+                    className="ml-1 mt-2"
+                    onClick={() => {
+                      {
+                        !speaking
+                          ? speak({ text: msg.message, voice }, msg.id)
+                          : cancel();
+                      }
+                    }}
+                  >
+                    {activeVoice === msg.id && speaking ? (
+                      <CircleStop className="w-4 h-4" />
+                    ) : (
+                      <AudioLines className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
+                <div ref={containerRef}></div>
+              </>
             ))}
           </div>
           <form
@@ -190,7 +251,6 @@ const ChatRooms = ({ friends }: { friends: any }) => {
                 }))
               }
             />
-            {/* <Mic className="absolute w-6 h-6 top-10 right-[4.5rem]" /> */}
             <Button
               type="submit"
               size="icon"
