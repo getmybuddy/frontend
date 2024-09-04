@@ -1,19 +1,19 @@
 "use client";
-
-import { ReactNode, forwardRef, useEffect, useState } from "react";
-
+import React from "react";
 interface ICustomTabsProps {
   items: {
     key: string;
     label: string;
-    children: ReactNode;
+    children: React.ReactNode;
   }[];
   active?: string;
   onChangeTabs: (selected: string) => void;
 }
 
 const CustomTabs = ({ active, items, onChangeTabs }: ICustomTabsProps) => {
-  const [selected, setSelected] = useState<string>(active || items[0].key);
+  const [selected, setSelected] = React.useState<string>(
+    active || items[0].key
+  );
 
   const header = items.map((item) => ({
     label: item.label,
@@ -22,7 +22,7 @@ const CustomTabs = ({ active, items, onChangeTabs }: ICustomTabsProps) => {
 
   const content = items.find((item) => item.key === selected)?.children;
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (active) {
       setSelected(active);
     }

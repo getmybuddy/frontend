@@ -67,7 +67,11 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      return "/chat";
+      if (url.startsWith("/chat")) {
+        return `${baseUrl}`;
+      } else {
+        return baseUrl + "/chat";
+      }
     },
     async signIn(user) {
       if (user) {

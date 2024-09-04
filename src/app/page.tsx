@@ -1,6 +1,5 @@
 "use client";
 import Register from "@/components/Register";
-import Tabss from "@/components/Tabs";
 import { Button } from "@/components/ui/button";
 import {
   Card,
