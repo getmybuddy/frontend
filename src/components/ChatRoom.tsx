@@ -17,7 +17,13 @@ import { getCountryCode, getCountryData, TCountryCode } from "countries-list";
 import useSpeechSynthesis from "@/hooks/useSpeechSynthesis";
 import UserProfile from "./UserProfile";
 
-const ChatRooms = ({ friends }: { friends: any }) => {
+const ChatRooms = ({
+  friends,
+  addButton,
+}: {
+  friends: any;
+  addButton: React.ReactNode | undefined;
+}) => {
   const containerRef = React.useRef<null | HTMLDivElement>(null);
 
   const { speak, voices, cancel, speaking, activeVoice } = useSpeechSynthesis();
@@ -68,7 +74,7 @@ const ChatRooms = ({ friends }: { friends: any }) => {
       let i = 0;
       if (splitMessage) {
         const interval = setInterval(() => {
-          setDisplayMessage((prev) => prev + splitMessage[i - 1] + " ");
+          setDisplayMessage((prev) => prev + splitMessage[i] + " ");
           i++;
           if (i === splitMessage.length) {
             clearInterval(interval);
@@ -94,6 +100,7 @@ const ChatRooms = ({ friends }: { friends: any }) => {
 
   React.useEffect(() => {
     scrollToBottom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayMessage]);
 
   React.useEffect(() => {
@@ -153,19 +160,20 @@ const ChatRooms = ({ friends }: { friends: any }) => {
           >
             <PanelRightOpen className="w-6 h-6" />
           </Button>
-          <AddFriend />
-          <ul className="space-y-2 text-center">
+          <AddFriend title="Add Friend" className="w-full" />
+          <ul className="space-y-2 flex flex-col">
             {myFriends?.map((item, idx) => (
-              <li
-                key={idx}
-                className={cn(
-                  "py-2 hover:bg-[#ffffff5e] hover:rounded-lg cursor-pointer",
-                  active === item.id ? "bg-[#ffffff5e]" : ""
-                )}
-                onClick={() => setActive(item.id)}
-              >
-                {item.name}
-              </li>
+              <UserProfile key={idx} {...item}>
+                <li
+                  className={cn(
+                    "py-2 hover:bg-[#ffffff5e] hover:rounded-lg cursor-pointer",
+                    active === item.id ? "bg-[#ffffff5e]" : ""
+                  )}
+                  onClick={() => setActive(item.id)}
+                >
+                  {item.name}
+                </li>
+              </UserProfile>
             ))}
           </ul>
         </div>
@@ -183,7 +191,7 @@ const ChatRooms = ({ friends }: { friends: any }) => {
               <PanelRightClose className="w-6 h-6" />
             </button>
             <UserProfile {...activeFriend}>
-              <h1>Hello i am {activeFriend?.name}</h1>
+              {activeFriend && <h1>Hello i am {activeFriend?.name}</h1>}
             </UserProfile>
           </div>
           <button
@@ -195,7 +203,13 @@ const ChatRooms = ({ friends }: { friends: any }) => {
           </button>
         </header>
         <div className="flex flex-col max-w-sm h-[calc(100vh_-_64px)] md:max-w-2xl mx-auto rounded-lg pt-4">
-          <div className="flex-grow p-4 overflow-y-auto">
+          <div
+            className={cn(
+              !activeFriend && "flex justify-center items-center",
+              "p-4 overflow-y-auto flex-grow"
+            )}
+          >
+            {addButton}
             {allMessage.map((msg, idx) => (
               <>
                 <div
