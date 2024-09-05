@@ -30,7 +30,13 @@ import {
 } from "./ui/select";
 import Alert from "./Alert";
 
-const AddFriend = () => {
+const AddFriend = ({
+  title,
+  className,
+}: {
+  title: string;
+  className: string;
+}) => {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const formSchema = z.object({
@@ -91,8 +97,8 @@ const AddFriend = () => {
         setIsOpen={setIsOpen}
       />
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          Add Friend
+        <Button variant="outline" className={className}>
+          {title}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

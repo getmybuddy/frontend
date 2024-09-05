@@ -11,8 +11,6 @@ const useSpeechSynthesis = () => {
   };
 
   const getVoices = () => {
-    // Firefox seems to have voices upfront and never calls the
-    // voiceschanged event
     let voiceOptions = window.speechSynthesis.getVoices();
     if (voiceOptions.length > 0) {
       processVoices(voiceOptions);
@@ -34,6 +32,7 @@ const useSpeechSynthesis = () => {
       setSupported(true);
       getVoices();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const speak = (args: any, idx: number) => {
@@ -41,8 +40,6 @@ const useSpeechSynthesis = () => {
     const { voice = null, text = "", rate = 1, pitch = 1, volume = 1 } = args;
     if (!supported) return;
     setSpeaking(true);
-    // Firefox won't repeat an utterance that has been
-    // spoken, so we need to create a new instance each time
     const utterance = new window.SpeechSynthesisUtterance();
     utterance.text = text;
     utterance.voice = voice;
